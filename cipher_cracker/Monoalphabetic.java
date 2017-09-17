@@ -6,9 +6,12 @@
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.LinkedHashMap;
 import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
@@ -88,6 +91,34 @@ public class Monoalphabetic{
         //return str;
     }
 
+    private static void frequency(String cipher){
+        // find frequency of characters in text.
+        HashMap <Character, Integer> cipherFreq = new HashMap<>(26);
+        int tokenCount = 0;
+
+        for(char c : cipher.toCharArray()){
+            tokenCount++;
+            if (cipherFreq.containsKey(c)){
+                cipherFreq.put(c, cipherFreq.get(c) + 1);
+            } else {
+                cipherFreq.put(c, 1);
+            }
+        }
+
+        //TreeMap<Character, Integer> sortedCipherFreq = new TreeMap<>();
+        //sortedCipherFreq.putAll(cipherFreq);
+
+        LinkedHashMap<Character, Integer> sortedCipherFreq =
+            cipherFreq.entrySet().stream().
+            sorted(Entry.comparingByValue()).
+            collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                                     (e1, e2) -> e1, LinkedHashMap::new));
+
+        for (Map.Entry<Character, Integer> e : sortedCipherFreq.entrySet()){
+            System.out.println(e.toString());
+        }
+    }
+
     public static void main(String[] args){
         //test();
         //*
@@ -96,7 +127,8 @@ public class Monoalphabetic{
             cipher += str;
 
         System.out.println();
-        bruteforce(cipher);
+        //bruteforce(cipher);
+        frequency(cipher);
         //*/
     }
 }
