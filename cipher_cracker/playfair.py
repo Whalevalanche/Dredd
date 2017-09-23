@@ -25,7 +25,7 @@ def encrypt(key, txt, letter_overlap = None):
         # letter_overlap
         key_unique += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         key_unique = ''.join(OrderedDict.fromkeys(key_unique).keys())
-    else if len(key_unique) > 25:
+    elif len(key_unique) > 25:
         raise Exception("Given Key is greater than 25 unique characters")
     else:
         # The key is fully provided
@@ -36,6 +36,12 @@ def encrypt(key, txt, letter_overlap = None):
     # get set of digraphs from plain text
     #string length must be even
     txt_digraph = Set()
+
+    # modify plain text to include 'Q' in between doubles and at end if odd
+    txt = convert_dubs(txt)
+    if len(txt> % 2 != 0:
+        txt += 'Q'
+
     for i in range(len(txt)):
         if i % 2 != 0:
             continue;
@@ -43,9 +49,6 @@ def encrypt(key, txt, letter_overlap = None):
 
     if len(txt) % 2 != 0:
         txt_digraph.add("Q" + txt[-1])
-
-    if check_dubs(txt_digraph):
-
 
     # for each unique digraph, get new mapping (create dict)
 
