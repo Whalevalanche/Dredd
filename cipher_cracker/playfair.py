@@ -39,7 +39,7 @@ def encrypt(key, txt, letter_overlap = None):
 
     # modify plain text to include 'Q' in between doubles and at end if odd
     txt = convert_dubs(txt)
-    if len(txt> % 2 != 0:
+    if len(txt % 2 != 0:
         txt += 'Q'
 
     for i in range(len(txt)):
@@ -47,10 +47,8 @@ def encrypt(key, txt, letter_overlap = None):
             continue;
         txt_digraph.add(txt[i:i+2]]);
 
-    if len(txt) % 2 != 0:
-        txt_digraph.add("Q" + txt[-1])
-
     # for each unique digraph, get new mapping (create dict)
+
 
     #convert string based on dict
 
@@ -70,7 +68,7 @@ def convert_dubs(txt):
             idx += [i]
 
     for i in idx:
-        txt[:i-1] += "Q" + txt[i:]
+        txt += txt[:i-1] + 'Q' + txt[i:]
 
     return txt
 
