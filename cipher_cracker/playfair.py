@@ -23,15 +23,15 @@ def encrypt(key, txt, letter_overlap = None):
     if len(key_unique) < 25:
         # TODO Not provided with the full key, thus need to guess or use known
         # letter_overlap
-        unique_key += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        unique_key = ''.join(OrderedDict.fromkeys(unique_key).keys())
-    else if len(unique_key) > 25:
+        key_unique += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        key_unique = ''.join(OrderedDict.fromkeys(key_unique).keys())
+    else if len(key_unique) > 25:
         raise Exception("Given Key is greater than 25 unique characters")
     else:
         # The key is fully provided
         # pick which alpha ordered letters to overlap: most freq = "st" or "ef"
         #   most common digraph OR most common letter w/ its most common digraph
-        key_matrix = np.reshape(np.array(list(unique_key)), [5,5])
+        key_matrix = np.reshape(np.array(list(key_unique)), [5,5])
 
     # get set of digraphs from plain text
     #string length must be even
@@ -60,6 +60,7 @@ def decrypt():
 
 def convert_dubs(txt):
     for i, c in enumerate(txt):
+
     return
 
 def main(args):
