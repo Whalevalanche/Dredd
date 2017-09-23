@@ -59,9 +59,17 @@ def decrypt():
     """
 
 def convert_dubs(txt):
+    idx = []
     for i, c in enumerate(txt):
+        if i == 0:
+            continue
+        if txt[i-1] == c:
+            idx += [i]
 
-    return
+    for i in idx:
+        txt[:i-1] += "Q" + txt[i:]
+
+    return txt
 
 def main(args):
     """
