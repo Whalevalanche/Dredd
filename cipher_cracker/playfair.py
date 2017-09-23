@@ -68,7 +68,7 @@ def convert_dubs(txt):
             idx += [i]
 
     for i in idx:
-        txt += txt[:i-1] + 'Q' + txt[i:]
+        txt = txt[:i-1] + 'Q' + txt[i:]
 
     return txt
 
