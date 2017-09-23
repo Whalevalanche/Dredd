@@ -59,7 +59,7 @@ def decrypt():
     Decrypts the provided cipher with the given key.
     """
 
-def convert_dubs(txt):
+def insert_letter(txt, letter = 'Q'):
     idx = []
     for i, c in enumerate(txt):
         if i == 0:
@@ -67,8 +67,13 @@ def convert_dubs(txt):
         if txt[i-1] == c:
             idx += [i]
 
+    offset = 0
     for i in idx:
-        txt = txt[:i-1] + 'Q' + txt[i:]
+        txt = txt[:i+offset] + letter + txt[i+offset:]
+        offset += 1
+
+    if len(txt) % 2 != 0:
+        txt += letter
 
     return txt
 
