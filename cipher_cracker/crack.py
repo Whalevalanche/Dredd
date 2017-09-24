@@ -30,11 +30,13 @@ def crack(plain_text, cipher_text):
         for key in digraph_dict:
             #trigraph must appear horizontally with digraph below
             if trigraph[1] == key[0] and trigraph[0] == digraph_dict[key][0]:
-                key_matrix = add_to_matrix("trigraph h",key_matrix,trigraph, key);
+                key_matrix = add_to_matrix("trigraph h", key_matrix, reocc_list,
+                    trigraph, key[1] + digraph_dict[key][1]);
             if trigraph[1] == key[0] and trigraph[2] == digraph_dict[key][0]:
-                key_matrix = add_to_matrix(
+                key_matrix = add_to_matrix("trigraph h", key_matrix, reocc_list,
+                    trigraph, digraph_dict[key][1] + key[1]);
 
-
+    print key_matrix;
     #find_ind_mappings('e', plain_text, cipher_text);
 
 
@@ -54,32 +56,47 @@ def find_ind_mappings(letter, plain_text, cipher_text):
     for ind in inds:
         mappings[1].append(plain_text[ind]);
     mappings[1] = list(set(mappings[1]));
-    print mappings;
 
 #find digraphs that share letters in plain/cipher, i.e. : to => op
 def find_reoccurrences(digraph_dict):
-	reoccurrences = [];
-	for key in digraph_dict:
-		if key[0:1].lower() ==  digraph_dict[key][1:].lower():
-			reoccurrences.append(key[1:] + key[0:1] + digraph_dict[key][1:]);
-		elif key[1:].lower() ==  digraph_dict[key][0:1].lower():
-			reoccurrences.append(key + digraph_dict[key][1:]);
+    reoccurrences = [];
+    for key in digraph_dict:
+	    if key[0:1].lower() ==  digraph_dict[key][1:].lower():
+		    reoccurrences.append(key[1:] + key[0:1] + digraph_dict[key][1:]);
+	    elif key[1:].lower() ==  digraph_dict[key][0:1].lower():
+		    reoccurrences.append(key + digraph_dict[key][1:]);
+    return reoccurrences;
 
-def add_to_matrix(indicator, key_matrix, str1, str2):
+def add_to_matrix(indicator, key_matrix, trigraph_list, str1, str2):
     #TODO check to see if either are already in grid
-    #TODO check to see if str2 is part of a trigraph
     if indicator == "trigraph h":
+        for trigraph in trigraph_list:
+            if str2 in trigraph:
+                str2 = trigraph;
         row = next_empty_row(key_matrix);
         col = next_empty_col(key_matrix,row);
+        if not row == -1 and not col == -1:
+            for c in str1:
+                key_matrix[row][col] = c;
+                col += 1;
+            row = next_empty_row(key_matrix);
+            col = col - len(str1);
+            for c in str2:
+                key_matrix[row][col];
+                col += 1;
 
-        for c in str1:
-            key_matrix[row][col] = c;
-            col += 1;
-        row = next_empty_row(key_matrix);;
-        col = col - len(str1);
-        for c in str2:
-            key_matrix[row][col];
-            col += 1;
+def next_empty_row(key_matrix):
+    for row in range(5):
+        for col in range(5):
+            if not type(key_matrix[row][col]).__name__ == 'numpy.float64':
+                return row;
+    return -1;
 
-crack('commander in chief fleet to naval headquarter',
-        'BPLYKRLHFEKIDBNFVUVIVZHZOPKERVNDFVLXWFESFE');
+def next_empty_col(key_matrix, row):
+    for col in range(5):
+        if not type(key_matrix[row][col]).__name__ == 'numpy.float64':
+            return col;
+    return -1;
+
+crack('EXAMPLEAQUICKBROWNFOXIUMPSOVERTHELAZYDOG',
+      'CZBLLMABRQHDGETMXMILYHRPNULYBUSIAPEVDIMI');
