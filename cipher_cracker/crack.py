@@ -3,8 +3,8 @@ import numpy as np
 from playfair import insert_letter
 
 def crack(plain_text, cipher_text):
-    key_matrix = np.empty([5,5])
-
+    key_matrix = np.zeros((5,5), dtype = np.str)
+    print key_matrix
     regex = re.compile('[^a-zA-Z]');
 
     plain_text = regex.sub('', plain_text);
@@ -29,6 +29,7 @@ def crack(plain_text, cipher_text):
     for trigraph in reocc_list:
         for key in digraph_dict:
             #trigraph must appear horizontally with digraph below
+            #pass col num here as they must start at same
             if trigraph[1] == key[0] and trigraph[0] == digraph_dict[key][0]:
                 key_matrix = add_to_matrix("trigraph h", key_matrix, reocc_list,
                     trigraph, key[1] + digraph_dict[key][1]);
@@ -57,6 +58,8 @@ def find_ind_mappings(letter, plain_text, cipher_text):
         mappings[1].append(plain_text[ind]);
     mappings[1] = list(set(mappings[1]));
 
+    return mappings;
+
 #find digraphs that share letters in plain/cipher, i.e. : to => op
 def find_reoccurrences(digraph_dict):
     reoccurrences = [];
@@ -76,27 +79,47 @@ def add_to_matrix(indicator, key_matrix, trigraph_list, str1, str2):
         row = next_empty_row(key_matrix);
         col = next_empty_col(key_matrix,row);
         if not row == -1 and not col == -1:
-            for c in str1:
-                key_matrix[row][col] = c;
-                col += 1;
-            row = next_empty_row(key_matrix);
-            col = col - len(str1);
-            for c in str2:
-                key_matrix[row][col];
-                col += 1;
+            if not in_matrix(key_matrix, str1):
+                for c in str1:
+                    key_matrix[row,col] = c;
+                    col += 1;
+                col = col - len(str1);
+            if not in_matrix(key_matrix, str2):
+                row = next_empty_row(key_matrix);
+                for c in str2:
+                    key_matrix[row,col] = c;
+                    col += 1;
+    return key_matrix;
 
 def next_empty_row(key_matrix):
     for row in range(5):
-        for col in range(5):
-            if not type(key_matrix[row][col]).__name__ == 'numpy.float64':
-                return row;
+        if key_matrix[row,0] == '':
+            return row;
     return -1;
 
 def next_empty_col(key_matrix, row):
     for col in range(5):
-        if not type(key_matrix[row][col]).__name__ == 'numpy.float64':
+        if key_matrix[row,col] == '':
             return col;
     return -1;
 
+def in_matrix(key_matrix, string):
+    row,col = np.where(key_matrix == string[0]);
+    if len(row) == 1:
+        string = string[1:];
+        for c in string:
+            try:
+                if key_matrix[row, col + 1] == c:
+                    col += 1;
+                elif key_matrix[row + 1, col] == c:
+                    row += 1;
+                else:
+                    return False;
+            #TODO
+            except:
+                print 'out of bounds';
+    else:
+        return False;
+    return True;
 crack('EXAMPLEAQUICKBROWNFOXIUMPSOVERTHELAZYDOG',
       'CZBLLMABRQHDGETMXMILYHRPNULYBUSIAPEVDIMI');
