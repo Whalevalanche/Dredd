@@ -10,15 +10,20 @@ from collections import OrderedDict
 import numpy as np
 import re
 
-def encrypt(key, txt, letter_overlap = None):
+def encrypt(key, txt, letter_overlap = ('E','F')):
     """
     Encrypts the code using Playfair cipher with the given key. doubles
     insertion and single's addition letter is 'Q'
 
     @param key: String of 25 unique letters
+    @param txt: String of plain text  to encrypt
+    @param letter_overlap: tuple of two characters. The first is to be replaced
+    by the second in the plain text, to account for the playfair cipher's pair
+    letter overlap. E to F, to mask the most common letter with its least common
+    nearest neighbor in the ordered alphabet.
     """
     key = key.upper()
-    txt = txt.upper()
+    txt = txt.upper().replace(letter_overlap[0], letter_overlap[1])
     key_unique = ''.join(OrderedDict.fromkeys(key).keys())
 
     if len(key_unique) < 25:
@@ -30,8 +35,6 @@ def encrypt(key, txt, letter_overlap = None):
         raise Exception("Given Key is greater than 25 unique characters")
     else:
         # The key is fully provided
-        # pick which alpha ordered letters to overlap: most freq = "st" or "ef"
-        #   most common digraph OR most common letter w/ its most common digraph
         key_matrix = np.reshape(np.array(list(key_unique)), [5,5])
 
     # get set of digraphs from plain text
@@ -104,11 +107,13 @@ def insert_letter(txt, letter='Q'):
     Inserts the specified letter (default = 'Q')
     """
     idx = []
+    offset = 0
     for i, c in enumerate(txt):
         if i == 0:
             continue
-        if txt[i-1] == c and i%2 != 0:
+        if txt[i-1] == c and (i+offset)%2 != 0:
             idx += [i]
+            offset += 1
 
     offset = 0
     for i in idx:
@@ -125,12 +130,41 @@ def main(args):
     Given text file containing plain text and cipher, separated by new lines.
     """
     key = "ABCDEFGHIJKLMNOPQRSTUVWXY"
-    txt = "OhHeyWhatUp"
-    encryption = encrypt(key, txt)
-    expected = "MJJCUXFCPYQR"
 
+    txt = "OhHeyWhatUp"
+    encryption = encrypt(key, txt, ('Z', 'Y'))
+    expected = "MJJCUXFCPYQR"
+    print(txt)
+    print(encryption)
+    print(encryption == expected, "\n")
+
+
+    txt = "abcdefghijklmnopqrstuvwxyz"
+    encryption = encrypt(key, txt, ('Z', 'Y'))
+    expected = "bcdeajhijflmnoktrstpvwxyvtvt".upper()
+    print(txt)
+    print(encryption)
+    print(encryption == expected, "\n")
+
+    txt = "afkpuyyythmns"
+    encryption = encrypt(key, txt, ('Z', 'Y'))
+    expected = "fkpuvuvteymrsx".upper()
+    print(txt)
     print(encryption)
     print(encryption == expected)
+
+    txt = "yyyy"
+    encryption = encrypt(key, txt, ('Z', 'Y'))
+    expected = "vtvtvtvt".upper()
+    print(txt)
+    print(encryption)
+    print(encryption == expected, "\n")
+
+    txt2 = "zzzz"
+    encryption2 = encrypt(key, txt2, ('Z', 'Y'))
+    print(txt2)
+    print(encryption2)
+    print(encryption2 == expected, "\n")
 
 if __name__ == "__main__":
     main(sys.argv)
