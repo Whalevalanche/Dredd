@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from playfair import insert_letter
 
 def crack(plain_text, cipher_text):
     key_matrix = np.empty([5,5])
@@ -25,26 +26,17 @@ def crack(plain_text, cipher_text):
 
     reocc_list = find_reoccurrences(digraph_dict);
 
-    find_ind_mappings('e', plain_text, cipher_text);
+    for trigraph in reocc_list:
+        for key in digraph_dict:
+            #trigraph must appear horizontally with digraph below
+            if trigraph[1] == key[0] and trigraph[0] == digraph_dict[key][0]:
+                key_matrix = add_to_matrix("trigraph h",key_matrix,trigraph, key);
+            if trigraph[1] == key[0] and trigraph[2] == digraph_dict[key][0]:
+                key_matrix = add_to_matrix(
 
 
-def insert_letter(txt, letter = 'Q'):
-    idx = []
-    for i, c in enumerate(txt):
-        if i == 0:
-            continue
-        if txt[i-1] == c:
-            idx += [i]
+    #find_ind_mappings('e', plain_text, cipher_text);
 
-    offset = 0
-    for i in idx:
-        txt = txt[:i+offset] + letter + txt[i+offset:]
-        offset += 1
-
-    if len(txt) % 2 != 0:
-        txt += letter
-
-    return txt
 
 """
 find what letters this letter in plain/cipher maps to in cipher/plain
@@ -72,6 +64,22 @@ def find_reoccurrences(digraph_dict):
 			reoccurrences.append(key[1:] + key[0:1] + digraph_dict[key][1:]);
 		elif key[1:].lower() ==  digraph_dict[key][0:1].lower():
 			reoccurrences.append(key + digraph_dict[key][1:]);
+
+def add_to_matrix(indicator, key_matrix, str1, str2):
+    #TODO check to see if either are already in grid
+    #TODO check to see if str2 is part of a trigraph
+    if indicator == "trigraph h":
+        row = next_empty_row(key_matrix);
+        col = next_empty_col(key_matrix,row);
+
+        for c in str1:
+            key_matrix[row][col] = c;
+            col += 1;
+        row = next_empty_row(key_matrix);;
+        col = col - len(str1);
+        for c in str2:
+            key_matrix[row][col];
+            col += 1;
 
 crack('commander in chief fleet to naval headquarter',
         'BPLYKRLHFEKIDBNFVUVIVZHZOPKERVNDFVLXWFESFE');
