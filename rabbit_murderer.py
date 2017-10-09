@@ -9,10 +9,8 @@ Either runs for the specific user, or if run by root then can run full system.
 """
 
 import os
-import sys
 from collections import Counter
 import psutil
-from pathos.multiprocessing import ProcessPool
 
 HARD_PROC_LIMIT = 64 # mimics the upper limit of ulimit in unix, where user's
 #   are limited a certain number of processes.
@@ -28,7 +26,6 @@ def monitor():
     """
     Monitors running processes looking for Fork Bombs. Kills them if found.
     """
-
     set()
 
     # Loop through all processes checking if they are making children
@@ -85,17 +82,8 @@ def kill(name, cmd, nc_to_proc):
         except psutil.NoSuchProcess:
             pass
 
-def linux_monitor():
-    while True:
-        pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
-
-
 def main():
     monitor()
-    #if sys.platform == "linux":
-    #    linux_monitor()
-    #else:
-    #    print("Reboot the system or the rabbits will kill you.")
 
 if __name__ == "__main__":
     main()
