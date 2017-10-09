@@ -8,11 +8,17 @@ Either runs for the specific user, or if run by root then can run full system.
 @author: Derek S. Prijatelj
 """
 
-import copy
+import os
+import sys
 from collections import Counter
 import psutil
+from pathos.multiprocessing import ProcessPool
 
-HARD_PROC_LIMIT = 63
+HARD_PROC_LIMIT = 64 # mimics the upper limit of ulimit in unix, where user's
+#   are limited a certain number of processes.
+this_pid = psutil.Process(os.getpid())
+this_ppid = this_pid.ppid()
+known_rabbit = set()
 
 # May need to split the check_if_bomb & other slow parts to ensure prog is fast
 #   enough to kill the rabbit before the rabbit can make more without detection.
@@ -22,98 +28,74 @@ def monitor():
     """
     Monitors running processes looking for Fork Bombs. Kills them if found.
     """
-    pname_count = Counter()
-    tmp_count = None
-    seen_pid = {} # stores pid : create time pairs
-    name_to_pids = {} # name to set of pids that the name has applied to.
+
+    set()
 
     # Loop through all processes checking if they are making children
     while True:
-        tmp_seen_pid = set() #to find which pids are gone
+        nc_count = Counter()
+        nc_to_proc = {}
 
         for proc in psutil.process_iter():
             try:
                 pinfo = proc.as_dict(attrs=
-                    ["pid", "name", "create_time", "username"]
+                    ["pid", "name", "cmdline", "create_time", "username"]
                     )
+                nc_tup = (pinfo["name"], tuple(pinfo["cmdline"]))
 
-                tmp_seen_pid.add(pinfo["pid"])
+                nc_count[nc_tup] += 1
 
-                # handle pid
-                if pinfo["pid"] not in seen_pid.keys():
-                    seen_pid[pinfo["pid"]] = pinfo
-
-                    # if a new process, then increase count of name
-                    pname_count[pinfo["name"]] += 1
-                    # handle name
-                    if pinfo["name"] not in name_to_pids.keys():
-                        name_to_pids[pinfo["name"]] = set([pinfo["pid"]])
-                    else:
-                        if pinfo["pid"] not in name_to_pids[pinfo["name"]]:
-                            name_to_pids[pinfo["name"]].add(pinfo["pid"])
-
-                elif pinfo["create_time"] != seen_pid[pinfo["pid"]] \
-                                                     ["create_time"]:
-                    # pid has been seen, but new create time = different process
-                    # decrement counter due to loss of process
-                    pname_count[seen_pid[pinfo["pid"]]["name"]] -= 1
-                    name_to_pids[seen_pid[pinfo["pid"]]["name"]] \
-                        .remove(pinfo["pid"])
-                    seen_pid[pinfo["pid"]] = pinfo
-
-                    # if a new process, then increase count of name
-                    pname_count[pinfo["name"]] += 1
-                    # handle name
-                    if pinfo["name"] not in name_to_pids.keys():
-                        name_to_pids[pinfo["name"]] = set([pinfo["pid"]])
-                    else:
-                        if pinfo["pid"] not in name_to_pids[pinfo["name"]]:
-                            name_to_pids[pinfo["name"]].add(pinfo["pid"])
-
-                # remove pids that are no longer existing
-                missing_pids = seen_pid.keys() - tmp_seen_pid
-                for mpid in missing_pids:
-                    tmp_name = seen_pid[mpid]["name"]
-                    pname_count[tmp_name] -= 1
-                    name_to_pids[tmp_name].remove(mpid)
-                    seen_pid.pop(mpid)
+                if nc_tup not in nc_to_proc.keys():
+                    nc_to_proc[nc_tup] = set([proc])
+                else:
+                    nc_to_proc[nc_tup].add(proc)
 
             except psutil.NoSuchProcess:
                 pass
 
-        if tmp_count != None:
-            check_if_bomb(pname_count, tmp_count, seen_pid, name_to_pids)
-        tmp_count = copy.deepcopy(pname_count) # saves previous state of pids
+        check_if_bomb(nc_count, nc_to_proc)
 
-def check_if_bomb(pname_count, tmp_count, seen_pid, name_to_pids):
-    for name, count in pname_count.items():
-        if (name in tmp_count.keys() \
-                and tmp_count[name] >= 30 \
-                and pname_count[name] >= tmp_count[name] * 2) \
-                or pname_count[name] >= HARD_PROC_LIMIT:
-            # get all parents and children, then kill all
-            kill(name, seen_pid, name_to_pids)
+def check_if_bomb(nc_count, nc_to_proc):
+    for (name, cmd), count in nc_count.most_common():
+        if count >= HARD_PROC_LIMIT or (name, cmd) in known_rabbit:
+            kill(name, cmd, nc_to_proc)
+            known_rabbit.add((name, cmd))
 
-def kill(name, seen_pid, name_to_pids):
+def kill(name, cmd, nc_to_proc):
     """
-    Kills the given process and all of it's subprocesses.
+    First, sedate, then kill the processes by name.
 
     """
-    for pid in name_to_pids[name]:
-        proc = psutil.Process(pid) # TODO may cause race problem,
-        #   may want to store proc, rather than pid.
-        proc.kill()
-
+    # Sedate and gather
+    p_set = set()
     for proc in psutil.process_iter():
         try:
-            if proc.name() == name or proc.exe() == name \
-                    or proc.cmdline() == name:
-                proc.kill()
+            #if proc.name() == name \
+            if proc.name() == name and tuple(proc.cmdline()) == cmd \
+                    and proc.pid != this_ppid and proc.pid != os.getpid():
+                proc.suspend()
+                p_set.add(proc)
         except psutil.NoSuchProcess:
             pass
 
+    # Kill
+    for proc in p_set:
+        try:
+            proc.kill()
+        except psutil.NoSuchProcess:
+            pass
+
+def linux_monitor():
+    while True:
+        pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
+
+
 def main():
     monitor()
+    #if sys.platform == "linux":
+    #    linux_monitor()
+    #else:
+    #    print("Reboot the system or the rabbits will kill you.")
 
 if __name__ == "__main__":
     main()
