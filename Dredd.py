@@ -1,9 +1,9 @@
 import psutil
 import os
 from collections import Counter
+
 print("I AM THE LAW. ANYTHING THAT GETS IN MY WAY WILL BE TREATED AS AN ACCESSORY.")
 print("YOU HAVE BEEN WARNED")
-
 #starting processes include
 SOFT_PROC_LIMIT = 20
 HARD_PROC_LIMIT = 100
@@ -22,6 +22,30 @@ def check_if_bomb(nc_count, nc_to_proc):
         if count >= HARD_PROC_LIMIT or (name, cmd) in known_rabbit:
             kill(name, cmd, nc_to_proc)
             known_rabbit.add((name, cmd))
+def kill(name, cmd, nc_to_proc):
+    """
+    First, sedate, then kill the processes by name.
+
+    """
+    # Sedate and gather
+    p_set = set()
+    for proc in psutil.process_iter():
+        try:
+            #if proc.name() == name \
+            if proc.name() == name and tuple(proc.cmdline()) == cmd \
+                    and proc.pid != this_ppid and proc.pid != os.getpid():
+                proc.suspend()
+                p_set.add(proc)
+        except psutil.NoSuchProcess:
+            pass
+
+    # Kill
+    for proc in p_set:
+        try:
+            proc.kill()
+        except psutil.NoSuchProcess:
+            pass
+
 while True:
     #get the number of current processes
     num_proc = 0
