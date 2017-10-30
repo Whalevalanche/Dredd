@@ -1,14 +1,17 @@
+"""
+Created By Derek S. Prijatelj, R. Cullen Buckley, and James Murphy
+"""
 import psutil
 import os
 from collections import Counter
 
-print("I AM THE LAW. ANYTHING THAT GETS IN MY WAY WILL BE TREATED AS AN ACCESSORY.")
+print("I AM THE LAW. ANYTHING THAT GETS IN MY WAY WILL BE TREATED AS AN ACCESSORY OF CRIME.")
 print("YOU HAVE BEEN WARNED")
 #starting processes include
 SOFT_PROC_LIMIT = 20
 HARD_PROC_LIMIT = 100
 known_rabbit = set()
-judges = set() #exchange between judges
+
 #get the name of this userspace
 username = psutil.Process(os.getpid()).username()
 #now take every starting process and do not hurt them. They are law-abiding
