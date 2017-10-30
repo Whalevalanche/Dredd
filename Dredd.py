@@ -29,7 +29,7 @@ while True:
     for proc in psutil.process_iter():
         num_proc = num_proc + 1
     # Loop through all processes checking if they are making children
-    while num_proc > SOFT_PROC_LIMIT:
+    if num_proc < SOFT_PROC_LIMIT:
         nc_count = Counter()
         nc_to_proc = {}
         for proc in psutil.process_iter():
@@ -46,7 +46,7 @@ while True:
         check_if_bomb(nc_count, nc_to_proc)
 
     #will kill all process that starts, when process_limit exceeds its limit
-    while num_proc > HARD_PROC_LIMIT:
+    else:
         accessory = set()
         for target in psutil.process_iter():
             if target.pid not in law_abiding and target.username() == username and target.pid not in judges:
@@ -58,4 +58,4 @@ while True:
                 target.kill()
             except psutil.NoSuchProcess:
                 pass
-    num_proc = 0 #reset the number of processes counted and loop
+        num_proc = 0 #reset the number of processes counted and loop
