@@ -1,22 +1,21 @@
 import psutil
 import os
+from collections import Counter
 print("I AM THE LAW. ANYTHING THAT GETS IN MY WAY WILL BE TREATED AS AN ACCESSORY.")
 print("YOU HAVE BEEN WARNED")
 
 #starting processes include
 SOFT_PROC_LIMIT = 20
 HARD_PROC_LIMIT = 100
-
+known_rabbit = set()
 judges = set() #exchange between judges
 #get the name of this userspace
 username = psutil.Process(os.getpid()).username()
-#now take every starting process and do not hurt them. The are law-abiding
+#now take every starting process and do not hurt them. They are law-abiding
 law_abiding = set()
 for starting in psutil.process_iter():
     if starting.username() == username:
         law_abiding.add(starting.pid)
-for citizens in law_abiding:
-    print(citizens)
 
 def check_if_bomb(nc_count, nc_to_proc):
     for (name, cmd), count in nc_count.most_common():
@@ -27,7 +26,9 @@ while True:
     #get the number of current processes
     num_proc = 0
     for proc in psutil.process_iter():
-        num_proc = num_proc + 1
+        if proc.pid not in law_abiding and proc.username() == username:
+            print(proc)
+            num_proc = num_proc + 1
     # Loop through all processes checking if they are making children
     if num_proc < SOFT_PROC_LIMIT:
         nc_count = Counter()
