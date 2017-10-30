@@ -22,8 +22,11 @@ for starting in psutil.process_iter():
 
 def check_if_bomb(nc_count, nc_to_proc):
     for (name, cmd), count in nc_count.most_common():
-        if count >= HARD_PROC_LIMIT or (name, cmd) in known_rabbit:
-            kill(name, cmd, nc_to_proc)
+        if count >= SOFT_PROC_LIMIT or (name, cmd) in known_rabbit:
+            try:
+                kill(name, cmd, nc_to_proc)
+            except psutil.NoSuchProcess:
+                pass
             known_rabbit.add((name, cmd))
 def kill(name, cmd, nc_to_proc):
     """
