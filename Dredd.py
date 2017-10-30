@@ -51,7 +51,6 @@ while True:
     num_proc = 0
     for proc in psutil.process_iter():
         if proc.pid not in law_abiding and proc.username() == username:
-            print(proc)
             num_proc = num_proc + 1
     # Loop through all processes checking if they are making children
     if num_proc < SOFT_PROC_LIMIT:
@@ -75,12 +74,11 @@ while True:
         accessory = set()
         for target in psutil.process_iter():
             if target.pid not in law_abiding and target.username() == username and target.pid not in judges:
-                print(target)
                 target.suspend()
                 accessory.add(target)
         for processes in accessory:
             try:
-                target.kill()
+                processes.kill()
             except psutil.NoSuchProcess:
                 pass
         num_proc = 0 #reset the number of processes counted and loop
