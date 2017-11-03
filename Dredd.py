@@ -10,7 +10,7 @@ print("YOU HAVE BEEN WARNED")
 #starting processes include
 SOFT_PROC_LIMIT = 20
 HARD_PROC_LIMIT = 100
-known_rabbit = set()
+known_rabbit = set() #all known rabbits
 
 #get the name of this userspace
 username = psutil.Process(os.getpid()).username()
@@ -31,7 +31,6 @@ def check_if_bomb(nc_count, nc_to_proc):
 def kill(name, cmd, nc_to_proc):
     """
     First, sedate, then kill the processes by name.
-
     """
     # Sedate and gather
     p_set = set()
@@ -58,8 +57,8 @@ while True:
     for proc in psutil.process_iter():
         if proc.pid not in law_abiding and proc.username() == username:
             num_proc = num_proc + 1
-    # Loop through all processes checking if they are making children
-    if num_proc < SOFT_PROC_LIMIT:
+    #allow processes to be made and check for rabbits if we are under the HARD_PROC_LIMIT
+    if num_proc < HARD_PROC_LIMIT:
         nc_count = Counter()
         nc_to_proc = {}
         for proc in psutil.process_iter():
@@ -75,11 +74,11 @@ while True:
                 pass
         check_if_bomb(nc_count, nc_to_proc)
 
-    #will kill all process that starts, when process_limit exceeds its limit
+    #will kill all process that are not "starting" processes. The real lawful neutral
     else:
         accessory = set()
         for target in psutil.process_iter():
-            if target.pid not in law_abiding and target.username() == username and target.pid not in judges:
+            if target.pid not in law_abiding and target.username() == username
                 target.suspend()
                 accessory.add(target)
         for processes in accessory:
