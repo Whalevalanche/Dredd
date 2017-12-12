@@ -21,17 +21,6 @@ def lcg(m, a, c, seed):
         yield seed >> (seed.bit_length() - 32)
 
 # functions for Blum Blum Shub
-def phi(n):
-    """
-    Euler's totient function. Used for an assertion in BBS parameters
-    """
-    amount = 0
-
-    for k in range(1, n + 1):
-        if fractions.gcd(n, k) == 1:
-            amount += 1
-
-    return amount
 
 def parity_of(val):
     """
@@ -57,7 +46,7 @@ def test_lcg(m=2**48, a=25214903917, c=11, seed=19):
     lcg_prng = lcg(m, a, c, seed)
 
     # run 1000 tests, timing each, store in a csv: time, random_num
-    with open("lcg.csv", w) as output:
+    with open("lcg.csv", 'w') as output:
         for i in range(1000):
             # timer start
             start = timer()
@@ -70,11 +59,11 @@ def test_bbs(p, q, seed=19):
     # Ensure the assertions are met for the BBS
     assert seed % p != 0 and seed % q != 0
     assert p % 4 == 3 and q % 4 == 3
-    assert fractions.gcd(phi(p),phi(q)) < 5
+    #assert fractions.gcd(phi(p),phi(q)) < 5
     bbs_csprng = bbs(p, q, seed)
 
     # run 1000 tests, timing each, store in a csv: time, random_num
-    with open("bbs.csv", w) as output:
+    with open("bbs.csv", 'w') as output:
         for i in range(1000):
             # timer start
             result = 0
@@ -93,24 +82,30 @@ def find_pq_seed(prime_size=2048, seed_size=32, cycle_length=2048):
     print("p found: ", p)
 
     q = number.getPrime(prime_size)
+    while q % 4 != 3:
+        q = number.getPrime(prime_size)
+    print("q found: ", q)
 
     seed = number.getPrime(seed_size)
     while seed == 1:
         seed = number.getPrime(seed_size)
     print("seed found: ", seed)
 
+    """ To ensure a longer cycle than M, M is still long so skipping for now.
     while (p*q) / fractions.gcd(phi(p-1),phi(q-1)) < 2 ** cycle_length \
             or q % 4 != 3:
         q = number.getPrime(prime_size)
         assert q < p*q > p
         print(q)
+    """
     return p, q, seed
 
 
 def main(argv):
-    #test_lcg()
-    #test_bbs()
-    print(find_pq_seed(int(argv[1]), int(argv[2]), int(argv[3])))
+    test_lcg()
+    p, q, seed = find_pq_seed(2048, 8, 2048)
+    test_bbs(p, q, seed)
+    #print(find_pq_seed(int(argv[1]), int(argv[2]), int(argv[3])))
 
 if __name__ == "__main__":
     main(argv)
