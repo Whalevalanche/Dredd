@@ -20,7 +20,7 @@ hist(bbs$runtime)
 perm.test <- function(v1, v2, num_splits=10000){
     n1 <- length(v1)
     n2 <- length(v2)
-    
+
     xbar1 <- mean(v1)
     xbar2 <- mean(v2)
     stat_of_interest <- xbar1 - xbar2
@@ -53,3 +53,9 @@ perm_results <- perm.test(bbs$runtime, lcg$runtime)
 pval <- perm_results[1]
 xbar_difs <- unlist(perm_results[2])
 original_xbar_dif <- perm_results[3]
+
+length(xbar_difs)
+mean(xbar_difs)
+var(xbar_difs)
+sd(xbar_difs)
+quantile(xbar_difs)
